@@ -438,8 +438,13 @@ const Home = () => {
                       />
                     </div>
                   </div>
-                  <Button type="submit" size="lg" className="w-full bg-red-600 hover:bg-red-700 text-lg py-6">
-                    Enviar Mensaje
+                  <Button 
+                    type="submit" 
+                    size="lg" 
+                    className="w-full bg-red-600 hover:bg-red-700 text-lg py-6"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}
                   </Button>
                 </form>
               </CardContent>
