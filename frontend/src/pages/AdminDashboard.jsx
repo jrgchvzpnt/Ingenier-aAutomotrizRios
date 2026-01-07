@@ -75,6 +75,75 @@ const AdminDashboard = () => {
     navigate('/login');
   };
 
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    
+    // Validate passwords match
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('Error de validación', {
+        description: 'Las contraseñas nuevas no coinciden',
+      });
+      return;
+    }
+
+    // Validate password length
+    if (passwordData.newPassword.length < 6) {
+      toast.error('Error de validación', {
+        description: 'La contraseña debe tener al menos 6 caracteres',
+      });
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      const token = localStorage.getItem('admin_token');
+      const response = await axios.put(
+        `${API}/auth/change-password`,
+        {
+          current_password: passwordData.currentPassword,
+          new_password: passwordData.newPassword
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data.success) {
+        toast.success('¡Contraseña actualizada!', {
+          description: 'Tu contraseña ha sido cambiada exitosamente',
+          duration: 5000,
+        });
+        
+        // Clear form
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      }
+    } catch (error) {
+      console.error('Change password error:', error);
+      
+      let errorMessage = 'No se pudo cambiar la contraseña. Intenta nuevamente.';
+      
+      if (error.response?.status === 400) {
+        errorMessage = 'La contraseña actual es incorrecta';
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      
+      toast.error('Error al cambiar contraseña', {
+        description: errorMessage,
+        duration: 5000,
+      });
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   useEffect(() => {
     fetchMessages();
   }, []);
