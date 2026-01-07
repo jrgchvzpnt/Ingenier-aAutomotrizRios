@@ -111,10 +111,19 @@ const AdminDashboard = () => {
                 <p className="text-sm text-slate-600">Mensajes de contacto recibidos</p>
               </div>
             </div>
-            <Button onClick={fetchMessages} disabled={loading}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Actualizar
-            </Button>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-slate-600">
+                👤 {localStorage.getItem('admin_username')}
+              </span>
+              <Button onClick={fetchMessages} disabled={loading} variant="outline" size="sm">
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Actualizar
+              </Button>
+              <Button onClick={handleLogout} variant="destructive" size="sm">
+                <LogOut className="w-4 h-4 mr-2" />
+                Cerrar Sesión
+              </Button>
+            </div>
           </div>
         </div>
       </header>
