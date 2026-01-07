@@ -141,6 +141,80 @@ async def verify_auth_token(token_data: TokenVerifyRequest):
         )
 
 
+@api_router.put("/auth/change-password")
+async def change_password(
+    password_data: ChangePasswordRequest,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    Change admin user password (requires authentication)
+    """
+    try:
+        # Verify token
+        if not authorization or not authorization.startswith('Bearer '):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token de autorización requerido"
+            )
+        
+        token = authorization.replace('Bearer ', '')
+        payload = verify_token(token)
+        
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token inválido o expirado"
+            )
+        
+        username = payload.get("username")
+        
+        # Find user
+        user = await db.admin_users.find_one({"username": username})
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Usuario no encontrado"
+            )
+        
+        # Verify current password
+        if not verify_password(password_data.current_password, user["hashed_password"]):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="La contraseña actual es incorrecta"
+            )
+        
+        # Hash new password
+        new_hashed_password = get_password_hash(password_data.new_password)
+        
+        # Update password in database
+        result = await db.admin_users.update_one(
+            {"username": username},
+            {"$set": {"hashed_password": new_hashed_password}}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error al actualizar la contraseña"
+            )
+        
+        logger.info(f"Password changed successfully for user: {username}")
+        
+        return {
+            "success": True,
+            "message": "Contraseña actualizada correctamente"
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Change password error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al cambiar la contraseña"
+        )
+
+
 # ============ CONTACT ENDPOINTS ============
 
 @api_router.post("/contact", response_model=dict, status_code=status.HTTP_201_CREATED)
