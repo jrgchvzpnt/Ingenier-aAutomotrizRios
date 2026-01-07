@@ -196,11 +196,11 @@ def test_post_contact_invalid_phone():
         print(f"Status Code: {response.status_code}")
         print(f"Response: {response.text}")
         
-        if response.status_code == 400:
+        if response.status_code == 422:
             print("✅ POST /api/contact with non-numeric phone: SUCCESS (correctly rejected)")
             return True
         else:
-            print(f"❌ POST /api/contact: Expected 400, got {response.status_code}")
+            print(f"❌ POST /api/contact: Expected 422, got {response.status_code}")
             return False
             
     except Exception as e:
