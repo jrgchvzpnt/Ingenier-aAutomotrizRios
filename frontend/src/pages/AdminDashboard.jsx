@@ -21,7 +21,12 @@ const AdminDashboard = () => {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/contact`);
+      const token = localStorage.getItem('admin_token');
+      const response = await axios.get(`${API}/contact`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (response.data.success) {
         setMessages(response.data.data);
         toast.success('Mensajes actualizados', {
@@ -30,12 +35,31 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error('Error fetching messages:', error);
-      toast.error('Error al cargar mensajes', {
-        description: 'No se pudieron cargar los mensajes de contacto',
-      });
+      
+      if (error.response?.status === 401) {
+        toast.error('Sesión expirada', {
+          description: 'Por favor inicia sesión nuevamente',
+        });
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_username');
+        navigate('/login');
+      } else {
+        toast.error('Error al cargar mensajes', {
+          description: 'No se pudieron cargar los mensajes de contacto',
+        });
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_username');
+    toast.success('Sesión cerrada', {
+      description: 'Has cerrado sesión correctamente',
+    });
+    navigate('/login');
   };
 
   useEffect(() => {
