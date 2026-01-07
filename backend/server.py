@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, status
+from fastapi import FastAPI, APIRouter, HTTPException, status, Header
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,11 +6,13 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ValidationError
-from typing import List
+from typing import List, Optional
 import uuid
 from datetime import datetime
 
 from models.contact import ContactMessage, ContactMessageCreate
+from models.admin import AdminUser, LoginRequest, LoginResponse, TokenVerifyRequest
+from auth import verify_password, get_password_hash, create_access_token, verify_token
 
 
 ROOT_DIR = Path(__file__).parent
@@ -36,6 +38,107 @@ class StatusCheck(BaseModel):
 
 class StatusCheckCreate(BaseModel):
     client_name: str
+
+
+# ============ INITIALIZATION ============
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize default admin user if not exists"""
+    admin_exists = await db.admin_users.find_one({"username": "admin"})
+    if not admin_exists:
+        default_admin = AdminUser(
+            username="admin",
+            hashed_password=get_password_hash("admin123"),
+            created_at=datetime.utcnow().isoformat()
+        )
+        await db.admin_users.insert_one(default_admin.dict())
+        logger.info("Default admin user created: username='admin', password='admin123'")
+    else:
+        logger.info("Admin user already exists")
+
+
+# ============ AUTH ENDPOINTS ============
+
+@api_router.post("/auth/login", response_model=LoginResponse)
+async def login(login_data: LoginRequest):
+    """
+    Authenticate admin user and return JWT token
+    """
+    try:
+        # Find user in database
+        user = await db.admin_users.find_one({"username": login_data.username})
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Usuario o contraseña incorrectos"
+            )
+        
+        # Verify password
+        if not verify_password(login_data.password, user["hashed_password"]):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Usuario o contraseña incorrectos"
+            )
+        
+        # Create access token
+        token = create_access_token(data={"username": user["username"]})
+        
+        logger.info(f"User '{login_data.username}' logged in successfully")
+        
+        return LoginResponse(
+            success=True,
+            message="Login exitoso",
+            token=token,
+            username=user["username"]
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al procesar el login"
+        )
+
+
+@api_router.post("/auth/verify")
+async def verify_auth_token(token_data: TokenVerifyRequest):
+    """
+    Verify if a JWT token is valid
+    """
+    try:
+        payload = verify_token(token_data.token)
+        
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token inválido o expirado"
+            )
+        
+        # Verify user still exists
+        user = await db.admin_users.find_one({"username": payload.get("username")})
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Usuario no encontrado"
+            )
+        
+        return {
+            "success": True,
+            "username": payload.get("username")
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Token verification error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido"
+        )
 
 
 # ============ CONTACT ENDPOINTS ============
@@ -90,13 +193,29 @@ async def create_contact_message(message_data: ContactMessageCreate):
 async def get_contact_messages(
     limit: int = 100,
     skip: int = 0,
-    status_filter: str = None
+    status_filter: str = None,
+    authorization: Optional[str] = Header(None)
 ):
     """
-    Get all contact messages (for admin purposes)
-    Optional filters: status (new, read, replied)
+    Get all contact messages (protected endpoint - requires auth)
     """
     try:
+        # Verify token
+        if not authorization or not authorization.startswith('Bearer '):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token de autorización requerido"
+            )
+        
+        token = authorization.replace('Bearer ', '')
+        payload = verify_token(token)
+        
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token inválido o expirado"
+            )
+        
         query = {}
         if status_filter:
             query["status"] = status_filter
@@ -115,6 +234,8 @@ async def get_contact_messages(
             "data": messages
         }
     
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching contact messages: {e}")
         raise HTTPException(
@@ -124,11 +245,30 @@ async def get_contact_messages(
 
 
 @api_router.get("/contact/{message_id}", response_model=dict)
-async def get_contact_message(message_id: str):
+async def get_contact_message(
+    message_id: str,
+    authorization: Optional[str] = Header(None)
+):
     """
-    Get a specific contact message by ID
+    Get a specific contact message by ID (protected endpoint)
     """
     try:
+        # Verify token
+        if not authorization or not authorization.startswith('Bearer '):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token de autorización requerido"
+            )
+        
+        token = authorization.replace('Bearer ', '')
+        payload = verify_token(token)
+        
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token inválido o expirado"
+            )
+        
         message = await db.contact_messages.find_one({"id": message_id})
         
         if not message:
