@@ -26,3 +26,16 @@ class LoginResponse(BaseModel):
 class TokenVerifyRequest(BaseModel):
     """Token verification request"""
     token: str
+
+
+class ChangePasswordRequest(BaseModel):
+    """Change password request"""
+    current_password: str
+    new_password: str = Field(..., min_length=6, max_length=100)
+    
+    @validator('new_password')
+    def password_strength(cls, v):
+        if len(v) < 6:
+            raise ValueError('La contraseña debe tener al menos 6 caracteres')
+        return v
+
