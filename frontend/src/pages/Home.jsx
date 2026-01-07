@@ -5,6 +5,11 @@ import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
+import { toast } from 'sonner';
+import axios from 'axios';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 const Home = () => {
   const [formData, setFormData] = useState({
@@ -13,13 +18,42 @@ const Home = () => {
     email: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // TODO: Connect to backend
-    alert('Gracias por tu mensaje. Te contactaremos pronto.');
-    setFormData({ name: '', phone: '', email: '', message: '' });
+    setIsSubmitting(true);
+
+    try {
+      const response = await axios.post(`${API}/contact`, formData);
+      
+      if (response.data.success) {
+        toast.success('¡Mensaje enviado!', {
+          description: 'Gracias por contactarnos. Te responderemos pronto.',
+          duration: 5000,
+        });
+        setFormData({ name: '', phone: '', email: '', message: '' });
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      
+      let errorMessage = 'No pudimos enviar tu mensaje. Intenta nuevamente.';
+      
+      if (error.response?.data?.detail) {
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          errorMessage = error.response.data.detail[0]?.msg || errorMessage;
+        }
+      }
+      
+      toast.error('Error al enviar mensaje', {
+        description: errorMessage,
+        duration: 5000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleWhatsApp = () => {
