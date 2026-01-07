@@ -7,7 +7,7 @@ services:
   # ==========================================
   - type: web
     name: ingenieria-rios-backend
-    runtime: python
+    env: python
     region: oregon
     plan: free
     branch: main
@@ -28,23 +28,24 @@ services:
   # ==========================================
   # FRONTEND (React)
   # ==========================================
-  - type: web
+  - type: static
     name: ingenieria-rios-frontend
-    runtime: node
+    env: static
     region: oregon
-    plan: free
     branch: main
-    rootDir: frontend
-    buildCommand: yarn install && yarn build
-    staticPublishPath: ./build
+    buildCommand: cd frontend && yarn install && yarn build
+    staticPublishPath: frontend/build
     pullRequestPreviewsEnabled: false
     envVars:
       - key: NODE_VERSION
         value: 18.18.0
       - key: REACT_APP_BACKEND_URL
         value: https://ingenieria-rios-backend.onrender.com
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
-
