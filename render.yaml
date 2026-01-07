@@ -22,9 +22,7 @@ services:
       - key: DB_NAME
         value: ingenieria_rios_db
       - key: MONGO_URL
-        fromDatabase:
-          name: ingenieria-rios-mongodb
-          property: connectionString
+        sync: false
     healthCheckPath: /api/
 
   # ==========================================
@@ -39,22 +37,14 @@ services:
     rootDir: frontend
     buildCommand: yarn install && yarn build
     staticPublishPath: ./build
+    pullRequestPreviewsEnabled: false
     envVars:
+      - key: NODE_VERSION
+        value: 18.18.0
       - key: REACT_APP_BACKEND_URL
-        fromService:
-          type: web
-          name: ingenieria-rios-backend
-          property: host
+        value: https://ingenieria-rios-backend.onrender.com
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
 
-# ==========================================
-# BASE DE DATOS (MongoDB)
-# ==========================================
-databases:
-  - name: ingenieria-rios-mongodb
-    plan: free
-    databaseName: ingenieria_rios_db
-    user: admin_user
