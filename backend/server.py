@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime
 
 from models.contact import ContactMessage, ContactMessageCreate
-from models.admin import AdminUser, LoginRequest, LoginResponse, TokenVerifyRequest
+from models.admin import AdminUser, LoginRequest, LoginResponse, TokenVerifyRequest, ChangePasswordRequest
 from auth import verify_password, get_password_hash, create_access_token, verify_token
 
 
