@@ -101,3 +101,85 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Crear página web corporativa profesional para Ingeniería Automotriz Ríos con formulario de contacto que guarde mensajes en MongoDB"
+
+backend:
+  - task: "API POST /api/contact - Guardar mensajes de contacto"
+    implemented: true
+    working: "NA"
+    file: "server.py, models/contact.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implementado endpoint POST /api/contact con modelo ContactMessage, validaciones de email, teléfono, nombre y mensaje. Guarda en colección contact_messages de MongoDB. Retorna JSON con success, message y data."
+  
+  - task: "API GET /api/contact - Obtener mensajes de contacto"
+    implemented: true
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implementado endpoint GET /api/contact con filtros opcionales (status, limit, skip). Retorna lista de mensajes ordenados por fecha descendente."
+  
+  - task: "API GET /api/contact/{message_id} - Obtener mensaje específico"
+    implemented: true
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implementado endpoint GET /api/contact/{message_id} para obtener un mensaje específico por ID."
+
+frontend:
+  - task: "Integración formulario de contacto con API backend"
+    implemented: true
+    working: "NA"
+    file: "pages/Home.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Integrado formulario con axios POST a /api/contact. Agregado toast de sonner para notificaciones de éxito y error. Estado de loading durante submit. Limpia form después de éxito."
+  
+  - task: "Toast notifications con Sonner"
+    implemented: true
+    working: "NA"
+    file: "App.js, pages/Home.jsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Agregado Toaster component en App.js con position top-right y richColors. Toast success en envío exitoso y toast error con mensaje descriptivo en caso de fallo."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "API POST /api/contact - Guardar mensajes de contacto"
+    - "Integración formulario de contacto con API backend"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "main"
+      message: "Backend implementado con endpoints de contacto. Modelo ContactMessage con validaciones (email, phone, name min/max length, message). Frontend integrado con toast notifications. Por favor testear: 1) POST /api/contact con datos válidos e inválidos, 2) GET /api/contact para verificar persistencia, 3) UI del formulario con envío exitoso y errores. BACKEND_URL ya configurado en .env."
