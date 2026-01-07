@@ -183,8 +183,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "API POST /api/contact - Guardar mensajes de contacto"
     - "Integración formulario de contacto con API backend"
+    - "Toast notifications con Sonner"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -194,3 +194,5 @@ agent_communication:
       message: "Backend implementado con endpoints de contacto. Modelo ContactMessage con validaciones (email, phone, name min/max length, message). Frontend integrado con toast notifications. Por favor testear: 1) POST /api/contact con datos válidos e inválidos, 2) GET /api/contact para verificar persistencia, 3) UI del formulario con envío exitoso y errores. BACKEND_URL ya configurado en .env."
     - agent: "testing"
       message: "✅ BACKEND TESTING COMPLETE: All 3 contact API endpoints working perfectly. POST /api/contact: validates all fields correctly (email format, name 2-100 chars, phone 10-20 digits, message 10-1000 chars), saves to MongoDB, returns 201. GET /api/contact: retrieves messages correctly, proper JSON structure. GET /api/contact/{id}: works with valid IDs, proper 404 for invalid IDs. Phone number cleaning (spaces/dashes removal) working. All validations return proper 422 status codes. MongoDB persistence confirmed. Ready for frontend integration testing."
+    - agent: "main"
+      message: "Iniciando testing frontend. Por favor testear: 1) Scroll al formulario de contacto, 2) Llenar campos con datos válidos (nombre, teléfono, email, mensaje), 3) Submit form, 4) Verificar toast de éxito aparece, 5) Verificar que formulario se limpia después de envío exitoso, 6) Probar con datos inválidos para verificar toast de error."
