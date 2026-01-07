@@ -430,49 +430,189 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             )}
+            </div>
           </div>
-        </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Total de mensajes</p>
-                  <p className="text-3xl font-bold text-slate-900">{messages.length}</p>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-600 mb-1">Total de mensajes</p>
+                    <p className="text-3xl font-bold text-slate-900">{messages.length}</p>
+                  </div>
+                  <MessageSquare className="w-12 h-12 text-blue-500" />
                 </div>
-                <MessageSquare className="w-12 h-12 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Mensajes nuevos</p>
-                  <p className="text-3xl font-bold text-green-600">
-                    {messages.filter(m => m.status === 'new').length}
-                  </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-600 mb-1">Mensajes nuevos</p>
+                    <p className="text-3xl font-bold text-green-600">
+                      {messages.filter(m => m.status === 'new').length}
+                    </p>
+                  </div>
+                  <Mail className="w-12 h-12 text-green-500" />
                 </div>
-                <Mail className="w-12 h-12 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Respondidos</p>
-                  <p className="text-3xl font-bold text-slate-600">
-                    {messages.filter(m => m.status === 'replied').length}
-                  </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-600 mb-1">Respondidos</p>
+                    <p className="text-3xl font-bold text-slate-600">
+                      {messages.filter(m => m.status === 'replied').length}
+                    </p>
+                  </div>
+                  <User className="w-12 h-12 text-slate-500" />
                 </div>
-                <User className="w-12 h-12 text-slate-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <div className="max-w-2xl mx-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lock className="w-5 h-5" />
+                    Cambiar Contraseña
+                  </CardTitle>
+                  <CardDescription>
+                    Actualiza tu contraseña para mantener tu cuenta segura
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleChangePassword} className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-900 mb-2">
+                        Contraseña Actual
+                      </label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                        <Input
+                          type={showPasswords.current ? 'text' : 'password'}
+                          value={passwordData.currentPassword}
+                          onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                          className="pl-10 pr-10"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords({...showPasswords, current: !showPasswords.current})}
+                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                        >
+                          {showPasswords.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-900 mb-2">
+                        Nueva Contraseña
+                      </label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                        <Input
+                          type={showPasswords.new ? 'text' : 'password'}
+                          value={passwordData.newPassword}
+                          onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                          className="pl-10 pr-10"
+                          required
+                          minLength={6}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords({...showPasswords, new: !showPasswords.new})}
+                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                        >
+                          {showPasswords.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">Mínimo 6 caracteres</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-900 mb-2">
+                        Confirmar Nueva Contraseña
+                      </label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                        <Input
+                          type={showPasswords.confirm ? 'text' : 'password'}
+                          value={passwordData.confirmPassword}
+                          onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                          className="pl-10 pr-10"
+                          required
+                          minLength={6}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords({...showPasswords, confirm: !showPasswords.confirm})}
+                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                        >
+                          {showPasswords.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="pt-4">
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-blue-900 hover:bg-blue-800"
+                        disabled={changingPassword}
+                      >
+                        {changingPassword ? 'Cambiando contraseña...' : 'Cambiar Contraseña'}
+                      </Button>
+                    </div>
+                  </form>
+
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-xs text-blue-800 font-semibold mb-2">💡 Recomendaciones de seguridad:</p>
+                    <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                      <li>Usa una contraseña única que no uses en otros sitios</li>
+                      <li>Incluye letras, números y símbolos</li>
+                      <li>Cambia tu contraseña periódicamente</li>
+                      <li>No compartas tu contraseña con nadie</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Account Info Card */}
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    Información de Cuenta
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between py-3 border-b border-slate-200">
+                      <span className="text-sm text-slate-600">Usuario</span>
+                      <span className="font-semibold text-slate-900">{localStorage.getItem('admin_username')}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-3 border-b border-slate-200">
+                      <span className="text-sm text-slate-600">Rol</span>
+                      <Badge>Administrador</Badge>
+                    </div>
+                    <div className="flex items-center justify-between py-3">
+                      <span className="text-sm text-slate-600">Sesión activa</span>
+                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Conectado</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
